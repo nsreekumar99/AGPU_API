@@ -6,9 +6,9 @@ namespace AGPU_API.Repository
 {
     public class AGPUMainRepository : AGPURepository<AGPU>, IAGPUMainRepository
     {
-        private readonly ApplicationDbContext _db;
+        private readonly ApplicationDbContext _db; // applicationdbcontext of this class should be passed to the main repository so we add base(db) in constructor
 
-        public AGPUMainRepository(ApplicationDbContext db) : base(db)
+        public AGPUMainRepository(ApplicationDbContext db) : base(db)  // applicationdbcontext passed to base
         {
             _db = db;
         }
