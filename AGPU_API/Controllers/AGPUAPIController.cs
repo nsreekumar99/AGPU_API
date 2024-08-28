@@ -82,6 +82,7 @@ namespace AGPU_API.Controllers
                 }
                 _response.Result = _mapper.Map<AGPUDTO>(AGPUvar);
                 _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
                 return Ok(_response);
             }
             catch (Exception ex)
@@ -141,6 +142,7 @@ namespace AGPU_API.Controllers
                 await _unitOfWork.SaveAsync();
                 _response.Result = _mapper.Map<AGPUCreateDTO>(model);
                 _response.StatusCode = HttpStatusCode.Created;
+                _response.IsSuccess = true;
                 return CreatedAtRoute("GETAGPU", new { id = model.Id }, _response); // call get, include id, give full object
             }
             catch (Exception ex) 
@@ -183,9 +185,9 @@ namespace AGPU_API.Controllers
                 _unitOfWork.AGPUs.Remove(ExtractedAGPU);
                 await _unitOfWork.SaveAsync();
                 //_response.Result = _mapper.Map<AGPUDTO>(ExtractedAGPU);
-                _response.StatusCode = HttpStatusCode.NoContent;
+                _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = true;
-                return NoContent();
+                return Ok();
             } catch (Exception ex)
             {
                 _logger.LogError($"An error occured while deleting the GPU with ID {id} :{ex.Message}");
@@ -232,9 +234,9 @@ namespace AGPU_API.Controllers
                 await _unitOfWork.AGPUMain.UpdateAsync(ExtractedAGPU); // extracted gpu still of type agpumain so doesnt need mapper
                 await _unitOfWork.SaveAsync();
                 _response.Result = _mapper.Map<AGPUUpdateDTO>(ExtractedAGPU);
-                _response.StatusCode = HttpStatusCode.NoContent;
+                _response.StatusCode = HttpStatusCode.OK;
                 _response.IsSuccess = true;
-                return NoContent();
+                return Ok(_response);
             }catch (Exception ex)
             {
                 _logger.LogError($"An error occured while upading the GPU with ID {id} :{ex.Message}");

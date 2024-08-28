@@ -1,0 +1,115 @@
+﻿@model AGPU_WEB.Models.DTO.AGPUUpdateDTO
+<form asp-action="Edit">
+	<br/>
+ <div class="Container border p-3">
+	<h1 class="text-primary">Edit AGPU</h1>
+	<hr/>
+	<input hidden asp-for="Id" />
+	<div class="row">
+		<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+		@* //name *@
+
+		<div class="col-2">
+			<label asp-for="Name" class="form-label pt-2 pb-3"></label>
+		</div>
+		<div class="col-10">
+			<input asp-for="Name" class="form-control pt-2" />
+			<span asp-validation-for="Name" class="text-danger"></span>
+		</div>
+
+		@* brand *@
+
+		<div class="col-2">
+			<label asp-for="Brand" class="form-label pt-2 pb-3"></label>
+		</div>
+		<div class="col-10">
+			<input asp-for="Brand" class="form-control pt-2" />
+			<span asp-validation-for="Brand" class="text-danger"></span>
+		</div>
+
+
+		@* model *@
+
+		<div class="col-2">
+			<label asp-for="Model" class="form-label pt-2 pb-3"></label>
+		</div>
+		<div class="col-10">
+			<input asp-for="Model" class="form-control pt-2" />
+			<span asp-validation-for="Model" class="text-danger"></span>
+		</div>
+
+		@* averageBench *@
+
+		<div class="col-2">
+			<label asp-for="AverageBenchPercentage" class="form-label pt-2 pb-3">Average Bench</label>
+		</div>
+		<div class="col-10">
+			<input asp-for="AverageBenchPercentage" class="form-control pt-2" />
+			<span asp-validation-for="AverageBenchPercentage" class="text-danger"></span>
+		</div>
+
+		@* valuePercentage *@
+		<div class="col-2">
+			<label asp-for="ValuePercentage" class="form-label pt-2 pb-3">Value</label>
+		</div>
+		<div class="col-10">
+			<input asp-for="ValuePercentage" class="form-control pt-2" />
+			<span asp-validation-for="ValuePercentage" class="text-danger"></span>
+		</div>
+
+		@* ReleaseDate *@
+
+		<div class="col-2">
+			<label asp-for="ReleaseDate" class="form-label pt-2 pb-3">Releasae Date</label>
+		</div>
+		<div class="col-10">
+			<input asp-for="ReleaseDate" class="form-control pt-2" type="date" />
+			<span asp-validation-for="ReleaseDate" class="text-danger"></span>
+		</div>
+
+		@* Price *@
+
+		<div class="col-2">
+			<label asp-for="Price" class="form-label pt-2 pb-3"></label>
+		</div>
+		<div class="col-10">
+			<input asp-for="Price" class="form-control pt-2" />
+			<span asp-validation-for="Price" class="text-danger"></span>
+		</div>
+
+		@* imageUrl *@
+
+		<div class="col-2">
+			<label asp-for="Images" class="form-label pt-2 pb-3">Image Url</label>
+		</div>
+			<div class="col-10">
+				@if (Model.Images != null && Model.Images.Any())
+				{
+					<input asp-for="Images" type="text" class="form-control pt-2" value="@Model.Images.First()"/>
+				}
+				else
+				{
+					<input type="text" class="form-control pt-2" value="No Image URL"/>
+				}
+				<span asp-validation-for="Images" class="text-danger"></span>
+			</div>
+
+		@* backtolist *@
+
+		<div class="col-5 offset-2 pt-2">
+			<a asp-controller="AGPU" asp-action="Index" class="btn btn-primary form-control">Back to List</a>
+		</div>
+
+		@* submitbutton *@
+
+		<div class="col-5 pt-2">
+			<input type="submit" value="Update" class="btn btn-success form-control" />
+		</div>
+	</div>
+ </div>
+</form>
+
+@section Scripts{
+	<partial name="_ValidationScriptsPartial" />
+}

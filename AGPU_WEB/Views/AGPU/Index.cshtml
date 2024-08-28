@@ -1,0 +1,58 @@
+﻿@using System.Globalization
+@* @model IEnumerable<AGPU_WEB.Models.DTO.AGPUDTO> *@
+<form id="deleteAGPUForm" method="post">
+	@Html.AntiForgeryToken()
+</form>
+
+@{
+	ViewData["Title"] = "AGPU List";
+}
+<br />
+
+<div class="container p-4 border">
+	<div class="row pb-2"> @* for header *@
+		<div class="col">
+			<h1 class="text-primary">AGPU List</h1>
+		</div>
+		<div class="col text-end pt-1">
+			<a asp-controller="AGPU" asp-action="Create" class="btn btn-outline-primary"><i class="bi bi-plus-square-fill" style="margin-right:5px"></i>Create New AGPU</a>
+		</div>
+	</div>
+
+	@* table *@
+
+	<table id="AGPUListControlPanel" class="table table-bordered table-striped" style="width:100%">
+		<thead>
+			<tr>
+				<th>
+					Name
+				</th>
+				<th>
+					Brand
+				</th>
+				<th>
+					Model
+				</th>
+				<th>
+					Average Bench
+				</th>
+				<th>
+					Value
+				</th>
+				<th>
+					Price
+				</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			
+		</tbody>
+	</table>
+
+</div>
+
+@section Scripts{
+	<script src="~/js/AGPUListControlPanel.js"></script>
+}
+
