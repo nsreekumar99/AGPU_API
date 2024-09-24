@@ -1,6 +1,7 @@
-using AGPU_WEB;
+﻿using AGPU_WEB;
 using AGPU_WEB.Services;
 using AGPU_WEB.Services.IServices;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,16 @@ builder.Services.AddAntiforgery(options =>
 {
     options.HeaderName = "X-CSRF-TOKEN";
 });
+
+// set culture to inr
+
+var cultureInfo = new CultureInfo("en-IN");
+cultureInfo.NumberFormat.CurrencySymbol = "₹";
+
+//apply the culture globally
+
+CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
 var app = builder.Build();
 

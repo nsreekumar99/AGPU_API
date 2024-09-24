@@ -1,8 +1,270 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
+﻿@model IEnumerable<AGPU_WEB.Models.DTO.AGPUDTO>
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div id="imageContainer" class="col-12" style="background-color:#77B800">
+	<div class="container">
+		<div id="textContent" class="text-left" style="flex:1; color:#fff !important">
+			<h2 style="color:#fff">Ranking the World's Best</h2>
+			<h3 style="color:#fff">Affordable Videocards</h3>
+		</div>
+
+		<div id="imageContent" class="text-right">
+			<img id="responsiveImage" class="d-block" src="~/Images/IndexPageImages/main-title-banner.png" alt="banner" />
+		</div>
+	</div>
 </div>
+
+<div id="blockContent" class="container-fluid" style="background-color:#f0f6f8; padding-bottom:30px; padding-top:30px;">
+	@* block content we created for background color *@
+	<div class="container">
+		<h1 class="text-center text-primary">Ranking top 30+ affordable Videocards currently in the Market</h1>
+
+		<p class="mt-4" style="line-height:1.7; color:#444444; text-align:justify;">
+			We showcase a ranking of over 30 graphics cards, evaluated based on benchmarks, performance, value, and more. Our rankings are designed to help students, graphic designers, and gamers find the best GPU that fits their budget, ensuring they get the most out of every dollar spent.
+		</p>
+	</div>
+
+	<div class="col-2">
+		@* this col is kept empty for now *@
+
+	</div>
+
+	<div class="col-lg-10 offset-lg-2 col-sm-12 mt-3">
+		<div class="row">
+			<div class="col-12 mb-3">
+				<div class="d-flex align-items-center text-primary">
+					<span class="">
+						@* leaving some space for displaying numbers *@
+						@* <span></span> *@
+					</span>
+
+					@* <span class="col-6">
+						<span class="col-6 col-lg-2 col-md-4 d-flex justify-content-center">
+							<span>Name</span>
+						</span>
+					</span> *@
+
+					<span class="col-3 offset-1 d-flex justify-content-start">
+						<span>Name</span>
+					</span>
+
+					<div class="col-2 d-flex justify-content-center">
+						<span>Value %</span>
+					</div>
+
+					<div class="col-2 d-flex justify-content-center">
+						<span>Benchmark %</span>
+					</div>
+
+					<div class="col-2 d-flex justify-content-center">
+						<span>Age Months</span>
+					</div>
+
+					<div class="col-2 d-flex justify-content-center">
+						<span>Price</span>
+					</div>
+				</div>
+			</div>
+
+			@* define and initialize a counter for numbers *@
+			@{
+				int counter = 1;
+			}
+
+			<div class="d-flex flex-lg-row w-100 justify-content-start flex-wrap">
+				@foreach (var gpu in Model)
+				{
+					<div class="col-12 mb-4">
+						<div class="card shadow-lg shadow-sm h-100 border-0" style="background-color:#ffffff">
+							<div class="card-body d-flex flex-column" style=" padding-left:0;padding-right:0; padding-bottom:15px; padding-top:15px;">
+								<div class="d-flex align-items-center mb-2">
+
+									@* counter column *@
+									<span class=" col-1 d-flex justify-content-center">
+										<span class="text-black">@counter</span>
+									</span>
+
+									@* name column *@
+									<h5 class="card-title col-3 d-flex text-black justify-content-start">@gpu.Name</h5>
+
+									@* value column *@
+									<div class="col-2 d-flex justify-content-center">
+										<div class="d-flex justify-content-center bench-box">
+											<span class="text-black">@gpu.ValuePercentage</span>
+										</div>
+									</div>
+
+									@* benchmark column *@
+									<span class="col-2 d-flex justify-content-center">
+										<div class=" d-flex justify-content-center bench-box"> 
+											<span class="text-black">@gpu.AverageBenchPercentage</span>
+										</div>
+									</span>
+
+									@* Age months *@
+									<div class="col-2 d-flex justify-content-center">
+										<div class="d-flex justify-content-center bench-box">
+											@if (gpu.ReleaseDate.HasValue)
+											{
+												var currentDate = DateTime.Now;
+
+												var releaseDate = gpu.ReleaseDate.Value;
+
+												// math
+
+												var ageInMonths = ((currentDate.Year - releaseDate.Year) * 12) + currentDate.Month - releaseDate.Month;
+												<span class="text-black">@ageInMonths</span>
+											}
+											else{
+												<span class="text-black">N/A</span>
+											}
+											
+										</div>
+									</div> 
+
+									@* @price *@
+
+									<div class="col-2 d-flex justify-content-center">
+										<div class="bench-box d-flex justify-content-center">
+											@if (gpu.Price.HasValue)
+											{
+												<span class="text-black">@(gpu.Price.Value.ToString("C"))</span>
+											}
+											else
+											{
+												<span class="text-black">@("₹0.00")</span>
+											}
+										</div>
+									</div>
+
+								</div>
+							</div>
+
+							<div class="loading-bar-container" style="position:relative; height:5px; background-color:#f0f0f0;border-radius:0 0 8px 8px;">
+								@* background-color in loading-bar-container acts as a track for the loading bar *@
+								@* applied border radius to make the lower corners rounded *@
+								<div class="liquid-loading" style="height:100%; width:0%; background-color:#77B800; border-radius:0 0 8px 0;" data-benchpercentage="@gpu.AverageBenchPercentage">
+									@* border-radius: 0 0 8px 0;` applies rounded corners to the bottom-right of the bar. *@
+								</div>
+							</div>
+
+							<script>
+								document.addEventListener("DOMContentLoaded", function () {
+									// Get all the loading bars
+									var loadingBars = document.querySelectorAll(".liquid-loading");
+
+									loadingBars.forEach(function (loadingBar) {
+										// Get the benchmark percentage from the data-benchpercentage attribute
+										var benchPercentage = loadingBar.getAttribute("data-benchpercentage");
+
+										// Set a delay for each bar based on the index for a staggered animation effect
+										setTimeout(function () {
+											loadingBar.style.width = benchPercentage + "%";
+										}, 200); // 200ms delay for staggered effect
+									});
+								});
+							</script>
+
+							<style>
+							
+								.loading-bar-container{
+									overflow:hidden;
+								}
+
+								.liquid-loading{
+									transition: width 1s ease-in-out;
+								}
+
+								.bench-box{
+									background-color: #AEDDA2;
+									border:2px;
+									border-color: #390;
+									border-style:solid;
+									border-radius: 3px 3px 0 0;
+									border-width: 1px;
+									text-align:center;
+									min-width:80px;
+									max-width:90px;
+									padding:10px 5px;
+									line-height:1;
+								}
+							</style>
+
+						</div>
+					</div>
+					counter++;
+				}
+			</div>
+
+		</div>
+	</div>
+</div>
+
+<script>
+	function adjustImagePosition() {
+		var image = document.getElementById("responsiveImage");
+		var text = document.getElementById("textContent");
+		var container = document.getElementById("imageContainer");
+		var screenWidth = window.innerWidth;
+
+		// Reset all styles
+		image.style.marginLeft = '';
+		image.style.marginRight = '';
+		image.style.marginTop = '';
+		image.style.marginBottom = '';
+		image.style.width = '';
+		image.style.maxWidth = '';
+
+		container.style.padding = '';
+		text.style.position = '';
+		text.style.marginTop = '';
+		text.style.marginLeft = '';
+		text.style.marginBottom = '';
+		text.style.marginRight = '';
+		text.style.textAlign = '';
+		text.style.left = '';
+		text.style.transform = '';
+		text.style.width = '';
+
+		if (screenWidth >= 992) { // Large screens (992px and up)
+			image.style.marginLeft = '45%';
+			image.style.marginTop = '-125px';
+			image.style.marginBottom = 'auto';
+			image.style.width = '25%';
+
+			container.style.padding = '1%';
+			text.style.marginTop = '35px';
+			text.style.marginLeft = '20px';
+			text.style.position = 'relative';
+			text.style.textAlign = 'left';
+		} else if (screenWidth >= 768 && screenWidth < 992) { // Medium screens (768px to 991px)
+			image.style.marginLeft = 'auto';
+			image.style.marginRight = 'auto';
+			image.style.marginTop = '-70px';
+			image.style.marginBottom = '0px';
+			image.style.width = '55%';
+
+			container.style.padding = '6%';
+			text.style.textAlign = 'center';
+			text.style.transform = 'translateX(-50%)'; // Center the text block
+			text.style.width = '100%'; // Ensure text block takes full width
+		} else { // Small screens (less than 768px)
+			image.style.marginLeft = 'auto';
+			image.style.marginRight = 'auto';
+			image.style.marginTop = '-60px';
+			image.style.marginBottom = '0px';
+			image.style.width = '70%';
+			image.style.maxWidth = '70%';
+
+			container.style.padding = '14%';
+			text.style.position = 'absolute';
+			text.style.marginTop = '130px';
+			text.style.textAlign = 'center';
+			text.style.left = '50%'; // Horizontally center
+			text.style.transform = 'translateX(-50%)'; // Center the text block
+			text.style.width = '100%'; // Ensure text block takes full width
+		}
+	}
+
+	window.onresize = adjustImagePosition;
+	adjustImagePosition();
+</script>
