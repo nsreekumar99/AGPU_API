@@ -1,0 +1,133 @@
+﻿@model IEnumerable<AGPU_WEB.Models.DTO.AGPUDTO>
+
+@{
+    int counter = 1;
+}
+<div class="d-flex flex-lg-row w-100 justify-content-start flex-wrap">
+    @foreach (var gpu in Model)
+    {
+        <div class="col-12 mb-4">
+            <div class="card shadow-lg shadow-sm h-100 border-0" style="background-color:#ffffff">
+                <div class="card-body d-flex flex-column" style="padding-left:0;padding-right:0;padding-bottom:15px;padding-top:15px;">
+                    <div class="d-flex align-items-center mb-2">
+                        @* counter column *@
+                        <span class=" col-1 d-flex justify-content-center">
+                            <span class="text-black">@counter</span>
+                        </span>
+                        <span class="col-1 d-flex justify-content-center">
+                            <img class="d-block" src="@($"https://localhost:7001{gpu.Images[0]}")" style="height:55px;" alt="@gpu.Name" />
+                        </span>
+                        <h5 class="card-title col-2 d-flex text-black justify-content-start">@gpu.Name</h5>
+                        <div class="col-2 d-flex justify-content-center">
+                            <div class="d-flex justify-content-center bench-box">
+                                <span class="text-black">@gpu.ValuePercentage</span>
+                            </div>
+                        </div>
+                        <span class="col-2 d-flex justify-content-center">
+                            <div class="d-flex justify-content-center bench-box">
+                                <span class="text-black">@gpu.AverageBenchPercentage</span>
+                            </div>
+                        </span>
+                        <div class="col-2 d-flex justify-content-center">
+                            <div class="d-flex justify-content-center bench-box">
+                                @if (gpu.ReleaseDate.HasValue)
+                                {
+                                    var currentDate = DateTime.Now;
+                                    var releaseDate = gpu.ReleaseDate.Value;
+                                    var ageInMonths = ((currentDate.Year - releaseDate.Year) * 12) + currentDate.Month - releaseDate.Month;
+                                    <span class="text-black">@ageInMonths</span>
+                                }
+                                else
+                                {
+                                    <span class="text-black">N/A</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-2 d-flex justify-content-center">
+                            <div class="bench-box d-flex justify-content-center">
+                                @if (gpu.Price.HasValue)
+                                {
+                                    <span class="text-black">@(gpu.Price.Value.ToString("C"))</span>
+                                }
+                                else
+                                {
+                                    <span class="text-black">₹0.00</span>
+                                }
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="loading-bar-container" style="position:relative; height:5px; background-color:#f0f0f0;border-radius:0 0 8px 8px;">
+                    @* background-color in loading-bar-container acts as a track for the loading bar *@
+                    @* applied border radius to make the lower corners rounded *@
+                    <div class="liquid-loading" style="height:100%; width:0%; background-color:#77B800; border-radius:0 0 8px 0;" data-benchpercentage="@gpu.AverageBenchPercentage" data-valuepercentage="@gpu.ValuePercentage">
+                        @* border-radius: 0 0 8px 0;` applies rounded corners to the bottom-right of the bar. *@
+                    </div>
+                </div>
+
+                <script>
+                    function animateLoadingBars() {
+                        var loadingBars = document.querySelectorAll(".liquid-loading");
+
+                        loadingBars.forEach(function (loadingBar) {
+                            // Get the benchmark percentage from the data-benchpercentage attribute
+                            var benchPercentage = loadingBar.getAttribute("data-benchpercentage");
+
+                            // Animate the width to the benchmark percentage
+                            setTimeout(function () {
+                                loadingBar.style.width = benchPercentage + "%";
+                            }, 200); // Adjust delay if needed
+                        });
+                    }
+
+                    function animateLoadingBars2() {
+                        var loadingBars = document.querySelectorAll(".liquid-loading");
+
+                        loadingBars.forEach(function (loadingBar) {
+                            // Get the benchmark percentage from the data-benchpercentage attribute
+                            var valuePercentage = loadingBar.getAttribute("data-valuepercentage");
+
+                            // Set a delay for each bar based on the index for a staggered animation effect
+                            setTimeout(function () {
+                                loadingBar.style.width = valuePercentage + "%";
+                            }, 200); // 200ms delay for staggered effect
+                        });
+                    }
+
+                    // Call the function after content is fully loaded
+                    document.addEventListener("DOMContentLoaded", function () {
+                        animateLoadingBars2();
+                    });
+                </script>
+
+                <style>
+
+                    .loading-bar-container {
+                        overflow: hidden;
+                    }
+
+                    .liquid-loading {
+                        transition: width 1s ease-in-out;
+                    }
+
+                    .bench-box {
+                        background-color: #AEDDA2;
+                        border: 2px;
+                        border-color: #390;
+                        border-style: solid;
+                        border-radius: 3px 3px 0 0;
+                        border-width: 1px;
+                        text-align: center;
+                        min-width: 80px;
+                        max-width: 90px;
+                        padding: 10px 5px;
+                        line-height: 1;
+                    }
+                </style>
+            </div>
+        </div>
+        counter++;
+    }
+</div>

@@ -4,6 +4,7 @@ using AGPU_API.Repository;
 using AGPU_API.Repository.IRepository;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +31,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// serve files from a custom folder 
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "Uploads")),
+    RequestPath = "/Uploads"
+});
 
 app.UseAuthorization();
 

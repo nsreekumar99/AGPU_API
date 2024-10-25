@@ -23,180 +23,907 @@
 		</p>
 	</div>
 
-	<div class="col-2">
-		@* this col is kept empty for now *@
-
-	</div>
-
-	<div class="col-lg-10 offset-lg-2 col-sm-12 mt-3">
+	<div class="container-fluid">
 		<div class="row">
-			<div class="col-12 mb-3">
-				<div class="d-flex align-items-center text-primary">
-					<span class="">
-						@* leaving some space for displaying numbers *@
-						@* <span></span> *@
-					</span>
+			<div class="col-2 mt-3">
+				@* this col is kept empty for now *@
+				@{
+					int counter1 = 1;
+				}
+				@foreach (var gpu in Model)
+				{
+					counter1++;
+				}
+				<div class="row">
+					<div class="col-12">
+						<div class="text-center">
+							<span class="h2" id="gpu-counter">@Model.Count()</span>
+							<span class="h6"> GPUs</span>
+						</div>
+						<br />
 
-					@* <span class="col-6">
-						<span class="col-6 col-lg-2 col-md-4 d-flex justify-content-center">
-							<span>Name</span>
-						</span>
-					</span> *@
+						<label class="h5">Brand</label>
+						<div class="position-relative">
+							<input type="text" class="form-control p-2" id="brandinput" style="border:1px solid #666" />
+							<button type="button" class="btn btn-clear" id="clearBrand" style="display:none; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: none; background: transparent;">&times;</button>
+						</div>
 
-					<span class="col-3 offset-1 d-flex justify-content-start">
-						<span>Name</span>
-					</span>
+						<div id="brandlist" class="list-group" style="display:none; position:absolute;z-index:100;width: calc(100% - 2px);">
+							<a href="#" class="list-group-item list-group-item-action" data-brand="Nvidia">Nvidia</a>
+							<a href="#" class="list-group-item list-group-item-action" data-brand="AMD">AMD</a>
+							<style>
+								#brandlist {
+									border: 1px solid #ccc; /* Border for dropdown */
+								}
 
-					<div class="col-2 d-flex justify-content-center">
-						<span>Value %</span>
-					</div>
+								.list-group-item {
+									white-space: nowrap; /* Prevent text wrapping */
+								}
 
-					<div class="col-2 d-flex justify-content-center">
-						<span>Benchmark %</span>
-					</div>
+								.btn-clear {
+									font-size: 20px;
+									color: #666;
+									cursor: pointer;
+								}
 
-					<div class="col-2 d-flex justify-content-center">
-						<span>Age Months</span>
-					</div>
+									.btn-clear:hover {
+										color: #333;
+									}
 
-					<div class="col-2 d-flex justify-content-center">
-						<span>Price</span>
+							</style>
+						</div>
+
+						<label class="h5 mt-3">Value</label>
+
+						<div class="d-block" style="width:100%">
+							<div id="price-slider" class="mt-5"></div>
+						</div>
+						@* <div class="filter">
+							<div id="price-slider"></div>
+						</div> *@
+
+						<label class="h5 mt-3">Benchmark</label>
+
+						<div class="d-block" style="width:100%">
+							<div id="bench-slider" class="mt-5"></div>
+						</div>
+
+						@* <button id="filter-btn" class="btn btn-primary">Filter</button> *@
+
+						@* 1st script for brand filtering *@
+
+						<script>
+							document.addEventListener("DOMContentLoaded", function () {
+								let selectedbrand = null;
+								const brandInput = document.getElementById("brandinput");
+								const clearBrandButton = document.getElementById("clearBrand");
+								var brandList = document.getElementById("brandlist");
+								document.getElementById("brandinput").addEventListener("click", function () {
+									if (!selectedbrand) {
+										brandList.style.display = (brandList.style.display === "none" || brandList.style.display === "") ? "block" : "none";
+										// Positioning the brand list
+										var rect = this.getBoundingClientRect();
+										brandList.style.top = rect.bottom + window.scrollY + "px";
+										brandList.style.left = rect.left + window.scrollX + "px";
+										brandList.style.width = this.offsetWidth + "px";
+									} else {
+										// Prevent opening the brand list if a brand is already selected
+										brandList.style.display = "none";
+									}
+								});
+
+								document.addEventListener("click", function (event) {
+									if (!brandinput.contains(event.target) && !brandlist.contains(event.target)) {
+										brandlist.style.display = "none";
+									}
+								});
+
+								// extract the value from the list-group-item to fetch the brand name(value)
+								document.querySelectorAll(".list-group-item").forEach(item => {
+									item.addEventListener("click", function (event) {
+										event.preventDefault();
+
+										if (selectedbrand) {
+											// Prevent selecting another brand if one is already selected
+											return;
+										}
+
+										selectedbrand = this.getAttribute("data-brand");
+										brandInput.value = selectedbrand;
+										clearBrandButton.style.display = "inline";
+										brandList.style.display = "none";
+
+										filterGpusByBrand(selectedbrand);
+										console.log("minValue: ",userMinValue, "MaxValue: ", userMaxValue);
+									});
+								});
+
+								// main function to filter based on selected brand in drop-down
+								function filterGpusByBrand(brand, minVal = null, maxVal = null, benchMin = null, benchMax = null) {
+
+									let userMinVal = minVal !== null ? minVal : userUpdatedPriceSlider ? userMinValue : null;
+									let userMaxVal = maxVal !== null ? maxVal : userUpdatedPriceSlider ? userMaxValue : null;
+									let userBenchMin = benchMin !== null ? benchMin : userUpdatedBenchSlider ? benchSliderLeftValue : null;
+									let userBenchMax = benchMax !== null ? benchMax : userUpdatedBenchSlider ? benchSliderRightValue : null;
+
+									$.ajax({
+										url: '@Url.Action("GetSortedGPUs", "Home")',
+										type: 'GET',
+										data: {
+											brand: brand,
+											minValue: userMinVal,
+											maxValue: userMaxVal,
+											benchSliderLeftValue: userBenchMin,
+											benchSliderRightValue: userBenchMax
+										},
+										success: function (result) {
+											$('#gpu-list-container').html(result.html);
+											$('#gpu-counter').html(result.count);
+											animateLoadingBars();
+											window.fetchPriceRange();
+										},
+										error: function (xhr, status, error) {
+											console.error("Failed to load GPUs: " + error);
+										}
+									});
+								}
+
+								// function for clear brand button
+
+								clearBrandButton.addEventListener("click", function () {
+									selectedbrand = null;
+									brandInput.value = "";
+									clearBrandButton.style.display = "none";
+
+									// Enable brand selection again
+									brandList.style.display = "block";
+
+									filterGpusByBrand(null);
+									// window.fetchPriceRange(null);
+								});
+
+								// use selectedbrand globally
+								window.getselectedbrand = function () {
+									return selectedbrand;
+								};
+
+								window.getclearBrandButton = function () {
+									return clearBrandButton;
+								};
+							});
+						</script>
+
+						<script>
+							let minValue = null;
+							let maxValue = null;
+							let minBenchValue = null;
+							let maxBenchValue = null;
+							let priceSlider = null;
+							let benchSlider = null;
+							let sliderInitialized = false;
+							let benchSliderInitialized = false;
+							let isUpdating = false;
+							let lastSelectedBrand = null;
+							let userUpdatedPriceSlider = false;
+							let userUpdatedBenchSlider = false;
+							// Variables to store user-adjusted values
+							let userMinValue = null;
+							let userMaxValue = null;
+							let benchSliderLeftValue = null;
+							let benchSliderRightValue = null;
+							let isUpdatingFromFetch = false;
+							let isUpdatingFromBenchFetch = false;
+							let debounceTimeout;
+
+
+							document.addEventListener("DOMContentLoaded", function () {
+
+								// for value percentage
+								priceSlider = document.getElementById('price-slider');
+
+								// for bench percentage
+								benchSlider = document.getElementById('bench-slider');
+
+								// Initialize noUiSlider
+
+								function initializeSlider(minValue, maxValue) {
+									if (!priceSlider) {
+										console.error("price-slider element not found.");
+										return;
+									}
+									console.log("Initializing slider with min:", minValue, "max:", maxValue);
+									noUiSlider.create(priceSlider, {
+										start: [minValue, maxValue],  // Use fetched values here
+										connect: true,
+										range: {
+											'min': minValue,
+											'max': maxValue
+										},
+										step: 1,
+										tooltips: true,
+									});
+
+									// on value slider update
+									priceSlider.noUiSlider.on('update', function (values) {
+										if (isUpdatingFromFetch) return;
+										userMinValue = Math.floor(values[0]);
+										userMaxValue = Math.ceil(values[1]);
+										userUpdatedPriceSlider = true;
+
+										// Clear any previous timer
+										clearTimeout(debounceTimeout);
+
+										// Log the status of the price slider update
+										console.log("User updated price slider:", userUpdatedPriceSlider);
+										// updateGPUsByRange(userMinValue, userMaxValue, benchSliderLeftValue, benchSliderRightValue);
+										// Set a new timer to process the data after 500ms (or any suitable delay) after user stops sliding
+										debounceTimeout = setTimeout(function () {
+											updateGPUsByRange(userMinValue, userMaxValue, benchSliderLeftValue, benchSliderRightValue);
+										}, 500);
+									});
+
+									sliderInitialized = true; // Set the flag to true after initialization
+								}
+
+								function initializeBenchSlider(minBenchValue, maxBenchValue) {
+									if (!benchSlider) {
+										console.error("bench-slider element not found.");
+										return;
+									}
+									noUiSlider.create(benchSlider, {
+										start: [minBenchValue, maxBenchValue],
+										connect: true,
+										range: {
+											'min': minBenchValue,
+											'max': maxBenchValue
+										},
+										step: 1,
+										tooltips: true,
+									});
+
+									benchSlider.noUiSlider.on('update', function (values) {
+										if (isUpdatingFromBenchFetch) return;
+										benchSliderLeftValue = Math.floor(values[0]);
+										benchSliderRightValue = Math.floor(values[1]);
+										userUpdatedBenchSlider = true;
+
+										clearTimeout(debounceTimeout);
+
+										// Log the status of the bench slider update
+										console.log("User updated bench slider:", userUpdatedBenchSlider);
+										// updateGPUsByRange(userMinValue, userMaxValue, benchSliderLeftValue, benchSliderRightValue)
+
+										debounceTimeout = setTimeout(function () {
+											updateGPUsByRange(userMinValue, userMaxValue, benchSliderLeftValue, benchSliderRightValue);
+										}, 500);
+									});
+
+									benchSliderInitialized = true;
+								}
+
+								// Update value slider values
+								function updateSlider(newMinValue, newMaxValue) {
+
+									isUpdatingFromFetch = true;
+
+									if (!userUpdatedPriceSlider) {
+										priceSlider.noUiSlider.set([newMinValue, newMaxValue]);
+									} else {
+										const currentValues = priceSlider.noUiSlider.get();
+										const adjustedMinValue = Math.max(newMinValue, Math.min(userMinValue ?? currentValues[0], newMaxValue));
+										const adjustedMaxValue = Math.min(newMaxValue, Math.max(userMaxValue ?? currentValues[1], newMinValue));
+										priceSlider.noUiSlider.set([adjustedMinValue, adjustedMaxValue]);
+									}
+
+									isUpdatingFromFetch = false;
+								}
+
+								// update bench slider values
+
+								function updateBenchSlider(minBenchValue, maxBenchValue) {
+
+									isUpdatingFromBenchFetch = true;
+
+									if (!userUpdatedBenchSlider) {
+										benchSlider.noUiSlider.set([newMinBenchValue, newMaxBenchValue]);
+									} else {
+										const currentValues = benchSlider.noUiSlider.get();
+										const adjustedMinBenchValue = Math.max(minBenchValue, Math.min(benchSliderLeftValue ?? currentValues[0], maxBenchValue));
+										const adjustedMaxBenchValue = Math.min(maxBenchValue, Math.max(benchSliderRightValue ?? currentValues[1], minBenchValue));
+										benchSlider.noUiSlider.set([adjustedMinBenchValue, adjustedMaxBenchValue]);
+									}
+
+									isUpdatingFromBenchFetch = false;
+								}
+
+								
+								// Fetch initial price range when the page loads
+								window.fetchPriceRange = function () {
+									const selectedbrand = window.getselectedbrand();
+									// Check if the slider is initialized before calling .get()
+
+									if (isUpdating) return; // Prevent fetching if already in progress
+									isUpdating = true;
+
+									$.ajax({
+										url: '@Url.Action("GetPriceRange", "Home")',
+										type: 'GET',
+										data: { brand: selectedbrand },  // Include selected brand filter if any
+										success: function (result) {
+											minValue = result.minValue;
+											maxValue = result.maxValue;
+											minBenchValue = result.minBenchValue;
+											maxBenchValue = result.maxBenchValue;
+
+											console.log(`Brand: ${selectedbrand}, Min Value: ${minValue}, Max Value: ${maxValue}`);
+
+											console.log(`Brand: ${selectedbrand}, Min Value: ${minBenchValue}, Max Value: ${maxBenchValue}`);
+
+											// const isBrandChanged = lastSelectedBrand !== selectedbrand;
+											// lastSelectedBrand = selectedbrand;
+
+											if (!sliderInitialized) {
+												initializeSlider(minValue, maxValue); // Initialize only if not already done
+											} else {
+												updateSlider(minValue, maxValue); // Update slider if already initialized
+											}
+
+											if (!benchSliderInitialized) {
+												initializeBenchSlider(minBenchValue, maxBenchValue)
+											}
+											else {
+												updateBenchSlider(minBenchValue, maxBenchValue)
+											}
+
+										},
+										error: function (xhr, status, error) {
+											console.error("Failed to load price range: " + error);
+										},
+										complete: function () {
+											isUpdating = false; // Reset the flag after request completion
+										}
+									});
+								}
+
+								// Call fetchPriceRange to initialize the slider
+								window.fetchPriceRange();
+
+								// for switching brand
+
+								// // Re-fetch price range and re-initialize slider when the filter (brand) changes
+								// document.querySelectorAll(".list-group-item").forEach(item => {
+								// 	item.addEventListener("click", function (event) {
+								// 		event.preventDefault();
+								// 		selectedbrand = this.getAttribute("data-brand");
+
+								// 		// Re-fetch and update the price slider based on the new brand filter
+								// 		window.fetchPriceRange();
+
+
+								// 	});
+								// });
+
+								// function updateGPUsByValueRange(minValue, maxValue) {
+								// 	const selectedbrand = window.getselectedbrand();
+								// 	$.ajax({
+								// 		url: '@Url.Action("GetSortedGPUs", "Home")',
+								// 		type: 'GET',
+								// 		data: { brand: selectedbrand, minValue: minValue, maxValue: maxValue },
+								// 		success: function (result) {
+								// 			$('#gpu-list-container').html(result);
+								// 			animateLoadingBars();
+								// 		},
+								// 		error: function (xhr, status, error) {
+								// 			console.error("Failed to load GPUs by value range: " + error);
+								// 		}
+								// 	});
+								// }
+
+								// function updateGpusByBenchRange(benchSliderLeftValue, benchSliderRightValue){
+								// 	const selectedbrand = window.getselectedbrand();
+								// 	$.ajax({
+								// 		url: '@Url.Action("GetSortedGPUs", "Home")',
+								// 		type: 'GET',
+								// 		data: { brand: selectedbrand, benchSliderLeftValue: benchSliderLeftValue, benchSliderRightValue: benchSliderRightValue },
+								// 		success: function (result) {
+								// 			$('#gpu-list-container').html(result);
+								// 			animateLoadingBars();
+								// 		},
+								// 		error: function (xhr, status, error) {
+								// 			console.error("Failed to load GPUs by value range: " + error);
+								// 		}
+								// 	});
+								// }
+
+								// replacement for updateGPUsByValue and Bench Range
+
+								function updateGPUsByRange(minValue, maxValue, benchSliderLeftValue, benchSliderRightValue) {
+									const selectedbrand = window.getselectedbrand();
+									console.log('Selected brand:', selectedbrand);
+									$.ajax({
+										url: '@Url.Action("GetSortedGPUs", "Home")',
+										type: 'GET',
+										data: {
+											brand: selectedbrand,
+											minValue: minValue,
+											maxValue: maxValue,
+											benchSliderLeftValue: benchSliderLeftValue,
+											benchSliderRightValue: benchSliderRightValue
+										},
+										success: function (result) {
+											// $('#gpu-list-container').html(result);
+											$('#gpu-list-container').html(result.html);
+											$('#gpu-counter').text(result.count);
+											animateLoadingBars();
+										},
+										error: function (xhr, status, error) {
+											console.error("Failed to load GPUs by value and bench range:" + error);
+										}
+									});
+								}
+
+								// // Handle Value Percentage button click
+								// $('#benchPercentageBtn').on('click', function () {
+								// 	const selectedbrand = window.getselectedbrand();
+
+								// 	// let minValue1 = null;
+								// 	// let maxValue1 = null;
+								// 	// Fetch the current slider values
+								// 	if (priceSlider.noUiSlider) {
+								// 		minValue = Math.floor(priceSlider.noUiSlider.get()[0]); // Round down
+								// 		maxValue = Math.ceil(priceSlider.noUiSlider.get()[1]);  // Round up
+								// 	}
+								// 	console.log("Min Value:", minValue, "Max Value:", maxValue);
+
+								// 	$.ajax({
+								// 		url: '@Url.Action("GetSortedGPUs", "Home")',
+								// 		type: 'GET',
+								// 		data: { brand: selectedbrand, minValue: minValue, maxValue: maxValue, sortby: 'Benchmark' },
+								// 		success: function (result) {
+								// 			$('#gpu-list-container').html(result.html); /* replace */
+								// 			// $('$gpu-counter').html(result.count);
+								// 			animateLoadingBars();
+								// 		},
+								// 		error: function () {
+								// 			alert("Error loading data. Please try again.");
+								// 		}
+								// 	});
+								// });
+
+								// const clearBrand = window.getclearBrandButton();
+								// clearBrand.addEventListener("click", function(){
+								// 	selectedbrand = null;
+
+								// })
+
+							});
+						</script>
+
+
+						<style>
+							#price-slider {
+								height: 15px;
+							}
+
+								#price-slider .noUi-connect {
+									background: #76b700;
+								}
+
+								#price-slider .noUi-handle {
+									height: 20px;
+									width: 20px;
+									top: -5px;
+									right: -9px; /* half the width */
+									border-radius: 9px;
+								}
+
+							#price-slider.noUi-handle-lower {
+								right: 0;
+							}
+
+							#price-slider .noUi-handle-upper {
+									right: -15px;
+							}
+
+							#bench-slider {
+								height: 15px;
+							}
+
+							#bench-slider .noUi-connect {
+									background: #76b700;
+								}
+
+								#bench-slider .noUi-handle {
+									height: 20px;
+									width: 20px;
+									top: -5px;
+									right: -9px; /* half the width */
+									border-radius: 9px;
+								}
+
+								#bench-slider.noUi-handle-lower {
+									right: 0;
+								}
+
+								#bench-slider .noUi-handle-upper {
+									right: -15px;
+								}
+
+						</style>
+
 					</div>
 				</div>
 			</div>
 
-			@* define and initialize a counter for numbers *@
-			@{
-				int counter = 1;
-			}
+			<div class="col-lg-10 col-sm-12 mt-3">
+				@* main table *@
+				<div class="row">
+					<div class="col-12 mb-3">
+						<div class="d-flex align-items-center text-primary">
+							<span class="">
+								@* leaving some space for displaying numbers *@
+								@* <span></span> *@
+							</span>
 
-			<div class="d-flex flex-lg-row w-100 justify-content-start flex-wrap">
-				@foreach (var gpu in Model)
-				{
-					<div class="col-12 mb-4">
-						<div class="card shadow-lg shadow-sm h-100 border-0" style="background-color:#ffffff">
-							<div class="card-body d-flex flex-column" style=" padding-left:0;padding-right:0; padding-bottom:15px; padding-top:15px;">
-								<div class="d-flex align-items-center mb-2">
+							@* <span class="col-6">
+							<span class="col-6 col-lg-2 col-md-4 d-flex justify-content-center">
+							<span>Name</span>
+							</span>
+							</span> *@
 
-									@* counter column *@
-									<span class=" col-1 d-flex justify-content-center">
-										<span class="text-black">@counter</span>
-									</span>
+							<span class="col-2 offset-2 d-flex justify-content-start">
+								<span>Name</span>
+							</span>
 
-									@* name column *@
-									<h5 class="card-title col-3 d-flex text-black justify-content-start">@gpu.Name</h5>
-
-									@* value column *@
-									<div class="col-2 d-flex justify-content-center">
-										<div class="d-flex justify-content-center bench-box">
-											<span class="text-black">@gpu.ValuePercentage</span>
-										</div>
-									</div>
-
-									@* benchmark column *@
-									<span class="col-2 d-flex justify-content-center">
-										<div class=" d-flex justify-content-center bench-box"> 
-											<span class="text-black">@gpu.AverageBenchPercentage</span>
-										</div>
-									</span>
-
-									@* Age months *@
-									<div class="col-2 d-flex justify-content-center">
-										<div class="d-flex justify-content-center bench-box">
-											@if (gpu.ReleaseDate.HasValue)
-											{
-												var currentDate = DateTime.Now;
-
-												var releaseDate = gpu.ReleaseDate.Value;
-
-												// math
-
-												var ageInMonths = ((currentDate.Year - releaseDate.Year) * 12) + currentDate.Month - releaseDate.Month;
-												<span class="text-black">@ageInMonths</span>
-											}
-											else{
-												<span class="text-black">N/A</span>
-											}
-											
-										</div>
-									</div> 
-
-									@* @price *@
-
-									<div class="col-2 d-flex justify-content-center">
-										<div class="bench-box d-flex justify-content-center">
-											@if (gpu.Price.HasValue)
-											{
-												<span class="text-black">@(gpu.Price.Value.ToString("C"))</span>
-											}
-											else
-											{
-												<span class="text-black">@("₹0.00")</span>
-											}
-										</div>
-									</div>
-
-								</div>
+							<div class="col-2 d-flex justify-content-center">
+								<span class="sortable-value" style="cursor:pointer;" id="valuePercentageBtn">Value %</span>
 							</div>
 
-							<div class="loading-bar-container" style="position:relative; height:5px; background-color:#f0f0f0;border-radius:0 0 8px 8px;">
-								@* background-color in loading-bar-container acts as a track for the loading bar *@
-								@* applied border radius to make the lower corners rounded *@
-								<div class="liquid-loading" style="height:100%; width:0%; background-color:#77B800; border-radius:0 0 8px 0;" data-benchpercentage="@gpu.AverageBenchPercentage">
-									@* border-radius: 0 0 8px 0;` applies rounded corners to the bottom-right of the bar. *@
-								</div>
+							<div class="col-2 d-flex justify-content-center">
+								<span style="cursor:pointer;" id="benchPercentageBtn">Benchmark %</span>
 							</div>
 
-							<script>
-								document.addEventListener("DOMContentLoaded", function () {
-									// Get all the loading bars
-									var loadingBars = document.querySelectorAll(".liquid-loading");
+							<div class="col-2 d-flex justify-content-center">
+								<span style="cursor:pointer;" id="ageMonthBtn" data-agesort="AgeDesc">Age Months</span>
+							</div>
 
-									loadingBars.forEach(function (loadingBar) {
-										// Get the benchmark percentage from the data-benchpercentage attribute
-										var benchPercentage = loadingBar.getAttribute("data-benchpercentage");
-
-										// Set a delay for each bar based on the index for a staggered animation effect
-										setTimeout(function () {
-											loadingBar.style.width = benchPercentage + "%";
-										}, 200); // 200ms delay for staggered effect
-									});
-								});
-							</script>
-
-							<style>
-							
-								.loading-bar-container{
-									overflow:hidden;
-								}
-
-								.liquid-loading{
-									transition: width 1s ease-in-out;
-								}
-
-								.bench-box{
-									background-color: #AEDDA2;
-									border:2px;
-									border-color: #390;
-									border-style:solid;
-									border-radius: 3px 3px 0 0;
-									border-width: 1px;
-									text-align:center;
-									min-width:80px;
-									max-width:90px;
-									padding:10px 5px;
-									line-height:1;
-								}
-							</style>
-
+							<div class="col-2 d-flex justify-content-center">
+								<span style="cursor:pointer;" id="priceSortBtn" data-sort="PriceDesc">Price</span>
+							</div>
 						</div>
 					</div>
-					counter++;
-				}
+
+					@* define and initialize a counter for numbers *@
+					@{
+						int counter = 1;
+					}
+
+					<div id="gpu-list-container" class="d-flex flex-lg-row w-100 justify-content-start flex-wrap">
+						@foreach (var gpu in Model)
+						{
+							<div class="col-12 mb-4">
+								<div class="card shadow-lg shadow-sm h-100 border-0" style="background-color:#ffffff">
+									<div class="card-body d-flex flex-column" style=" padding-left:0;padding-right:0; padding-bottom:15px; padding-top:15px;">
+										<div class="d-flex align-items-center mb-2">
+
+											@* counter column *@
+											<span class=" col-1 d-flex justify-content-center">
+												<span class="text-black">@counter</span>
+											</span>
+
+											<span class="col-1 d-flex justify-content-center">
+												<img class="d-block" src="@($"https://localhost:7001{gpu.Images[0]}")" style="height:55px;" alt="@gpu.Name" />
+											</span>
+
+											@* name column *@
+											<h5 class="card-title col-2 d-flex text-black justify-content-start">@gpu.Name</h5>
+
+											@* value column *@
+											<div class="col-2 d-flex justify-content-center">
+												<div class="d-flex justify-content-center bench-box">
+													<span class="text-black">@gpu.ValuePercentage</span>
+												</div>
+											</div>
+
+											@* benchmark column *@
+											<span class="col-2 d-flex justify-content-center">
+												<div class=" d-flex justify-content-center bench-box">
+													<span class="text-black">@gpu.AverageBenchPercentage</span>
+												</div>
+											</span>
+
+											@* Age months *@
+											<div class="col-2 d-flex justify-content-center">
+												<div class="d-flex justify-content-center bench-box">
+													@if (gpu.ReleaseDate.HasValue)
+													{
+														var currentDate = DateTime.Now;
+
+														var releaseDate = gpu.ReleaseDate.Value;
+
+														// math
+
+														var ageInMonths = ((currentDate.Year - releaseDate.Year) * 12) + currentDate.Month - releaseDate.Month;
+														<span class="text-black">@ageInMonths</span>
+													}
+													else
+													{
+														<span class="text-black">N/A</span>
+													}
+
+												</div>
+											</div>
+
+											@* @price *@
+
+											<div class="col-2 d-flex justify-content-center">
+												<div class="bench-box d-flex justify-content-center">
+													@if (gpu.Price.HasValue)
+													{
+														<span class="text-black">@(gpu.Price.Value.ToString("C"))</span>
+													}
+													else
+													{
+														<span class="text-black">@("₹0.00")</span>
+													}
+												</div>
+											</div>
+
+										</div>
+									</div>
+
+									<div class="loading-bar-container" style="position:relative; height:5px; background-color:#f0f0f0;border-radius:0 0 8px 8px;">
+										@* background-color in loading-bar-container acts as a track for the loading bar *@
+										@* applied border radius to make the lower corners rounded *@
+										<div class="liquid-loading" style="height:100%; width:0%; background-color:#77B800; border-radius:0 0 8px 0;" data-benchpercentage="@gpu.AverageBenchPercentage" data-valuepercentage="@gpu.ValuePercentage">
+											@* border-radius: 0 0 8px 0;` applies rounded corners to the bottom-right of the bar. *@
+										</div>
+									</div>
+
+									<script>
+										// document.addEventListener("DOMContentLoaded", function () {
+										// 	// Get all the loading bars
+										// 	var loadingBars = document.querySelectorAll(".liquid-loading");
+
+										// 	loadingBars.forEach(function (loadingBar) {
+										// 		// Get the benchmark percentage from the data-benchpercentage attribute
+										// 		var benchPercentage = loadingBar.getAttribute("data-benchpercentage");
+
+										// 		// Set a delay for each bar based on the index for a staggered animation effect
+										// 		setTimeout(function () {
+										// 			loadingBar.style.width = benchPercentage + "%";
+										// 		}, 200); // 200ms delay for staggered effect
+										// 	});
+										// });
+										function animateLoadingBars() {
+											var loadingBars = document.querySelectorAll(".liquid-loading");
+
+											loadingBars.forEach(function (loadingBar) {
+												// Get the benchmark percentage from the data-benchpercentage attribute
+												var benchPercentage = loadingBar.getAttribute("data-benchpercentage");
+
+												// Set a delay for each bar based on the index for a staggered animation effect
+												setTimeout(function () {
+													loadingBar.style.width = benchPercentage + "%";
+												}, 200); // 200ms delay for staggered effect
+											});
+										}
+
+										function animateLoadingBars2() {
+											var loadingBars = document.querySelectorAll(".liquid-loading");
+
+											loadingBars.forEach(function (loadingBar) {
+												// Get the benchmark percentage from the data-benchpercentage attribute
+												var valuePercentage = loadingBar.getAttribute("data-valuepercentage");
+
+												// Set a delay for each bar based on the index for a staggered animation effect
+												setTimeout(function () {
+													loadingBar.style.width = valuePercentage + "%";
+												}, 200); // 200ms delay for staggered effect
+											});
+										}
+
+									</script>
+
+									<style>
+
+										.loading-bar-container {
+											overflow: hidden;
+										}
+
+										.liquid-loading {
+											transition: width 1s ease-in-out;
+										}
+
+										.bench-box {
+											background-color: #AEDDA2;
+											border: 2px;
+											border-color: #390;
+											border-style: solid;
+											border-radius: 3px 3px 0 0;
+											border-width: 1px;
+											text-align: center;
+											min-width: 80px;
+											max-width: 90px;
+											padding: 10px 5px;
+											line-height: 1;
+										}
+									</style>
+
+								</div>
+							</div>
+							counter++;
+						}
+					</div>
+					<script>
+						document.addEventListener("DOMContentLoaded", function () {
+
+							animateLoadingBars(); // intial benchmark animation on reload or startup
+
+							$('#benchPercentageBtn').on('click', function () {
+								const selectedbrand = window.getselectedbrand();
+
+								// let minValue1 = null;
+								// let maxValue1 = null;
+								// Fetch the current slider values
+								if (priceSlider.noUiSlider) {
+									minValue = Math.floor(priceSlider.noUiSlider.get()[0]); // Round down
+									maxValue = Math.ceil(priceSlider.noUiSlider.get()[1]);  // Round up
+								}
+								console.log("Min Value:", minValue, "Max Value:", maxValue);
+
+								$.ajax({
+									url: '@Url.Action("GetSortedGPUs", "Home")',
+									type: 'GET',
+									data: { brand: selectedbrand, minValue: minValue, maxValue: maxValue, sortby: 'Benchmark' },
+									success: function (result) {
+										$('#gpu-list-container').html(result.html); /* replace */
+										// $('$gpu-counter').html(result.count);
+										animateLoadingBars();
+									},
+									error: function () {
+										alert("Error loading data. Please try again.");
+									}
+								});
+							});
+
+							// Handle Value Percentage button click
+							$('#valuePercentageBtn').on('click', function () {
+								const selectedbrand = window.getselectedbrand();
+
+								if (priceSlider.noUiSlider) {
+									minValue = Math.floor(priceSlider.noUiSlider.get()[0]); // Round down
+									maxValue = Math.ceil(priceSlider.noUiSlider.get()[1]);  // Round up
+								}
+
+								$.ajax({
+									url: '@Url.Action("ValueSort", "Home")',
+									type: 'GET',
+									data: { brand: selectedbrand, minValue: minValue, maxValue: maxValue },
+									success: function (result) {
+										$('#gpu-list-container').html(result);
+										animateLoadingBars2();
+									},
+									error: function () {
+										alert("Error loading data. Please try again.");
+									}
+								});
+							});
+
+							// // Handle Value Percentage button click
+							// $('#benchPercentageBtn').on('click', function () {
+							// 	const selectedbrand = window.getselectedbrand();
+
+							// 	// let minValue1 = null;
+							// 	// let maxValue1 = null;
+							// 	// Fetch the current slider values
+							// 	if (priceSlider.noUiSlider) {
+							// 		minValue = parseFloat(priceSlider.noUiSlider.get()[0]);
+							// 		maxValue = parseFloat(priceSlider.noUiSlider.get()[1]);
+							// 	}
+							// 	console.log("Min Value:", minValue, "Max Value:", maxValue);
+
+							// 	$.ajax({
+							// 		url: '@Url.Action("GetSortedGPUs", "Home")',
+							// 		type: 'GET',
+							// 		data: {brand: selectedbrand, minValue: minValue, maxValue: maxValue, sortby: 'Benchmark'},
+							// 		success: function (result) {
+							// 			$('#gpu-list-container').html(result); /* replace */
+							// 			animateLoadingBars();
+							// 		},
+							// 		error: function () {
+							// 			alert("Error loading data. Please try again.");
+							// 		}
+							// 	});
+							// });
+
+							//price desc asc btn trigger
+
+
+							$('#priceSortBtn').on('click', function () {
+
+								var sortOrder = $(this).attr('data-sort'); /* detect the current sort order. */
+								const selectedbrand = window.getselectedbrand();
+
+								if (priceSlider.noUiSlider) {
+									minValue = Math.floor(priceSlider.noUiSlider.get()[0]); // Round down
+									maxValue = Math.ceil(priceSlider.noUiSlider.get()[1]);  // Round up
+								}
+
+								$.ajax({
+									url: '@Url.Action("GetSortedGPUs", "Home")',
+									type: 'GET',
+									data: {
+										brand: selectedbrand,
+										sortby: sortOrder, 
+										minValue: minValue, 
+										maxValue: maxValue
+									},
+									success: function (result) {
+										$('#gpu-list-container').html(result.html); /* replace */
+										animateLoadingBars();
+
+										// code to toggle sort order
+										var newSortOrder = (sortOrder === 'PriceDesc') ? 'PriceAsc' : 'PriceDesc';
+										$('#priceSortBtn').attr('data-sort', newSortOrder);
+									},
+									error: function () {
+										alert("Error loading data. Please try again.");
+									}
+								});
+							});
+
+							// age Months Trigger Script
+
+							$('#ageMonthBtn').on('click', function () {
+
+								var sortOrder = $(this).attr('data-agesort'); /* detect the current sort order. */
+								const selectedbrand = window.getselectedbrand();
+
+								if (priceSlider.noUiSlider) {
+									minValue = Math.floor(priceSlider.noUiSlider.get()[0]); // Round down
+									maxValue = Math.ceil(priceSlider.noUiSlider.get()[1]);  // Round up
+								}
+
+								$.ajax({
+									url: '@Url.Action("GetSortedGPUs", "Home")',
+									type: 'GET',
+									data: {
+										brand: selectedbrand,
+										sortby: sortOrder,
+										minValue: minValue, 
+										maxValue: maxValue
+									},
+									success: function (result) {
+										$('#gpu-list-container').html(result.html); /* replace */
+										animateLoadingBars();
+
+										// code to toggle sort order
+										var newSortOrder = (sortOrder === 'AgeDesc') ? 'AgeAsc' : 'AgeDesc';
+										$('#ageMonthBtn').attr('data-agesort', newSortOrder);
+									},
+									error: function () {
+										alert("Error loading data. Please try again.");
+									}
+								});
+							});
+
+							// // Adjust image position on resize
+							// function adjustImagePosition() {
+							// 	// Your existing adjustImagePosition code
+							// }
+
+							// window.onresize = adjustImagePosition;
+							// adjustImagePosition();
+						});
+					</script>
+				</div>
+
 			</div>
 
 		</div>
 	</div>
+
 </div>
 
 <script>
