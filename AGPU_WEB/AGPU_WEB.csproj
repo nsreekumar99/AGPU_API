@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\lib\noUiSlider\" />
+    <Folder Include="wwwroot\Demo Video\" />
   </ItemGroup>
 
 </Project>
