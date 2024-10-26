@@ -5,9 +5,14 @@ VisualStudioVersion = 17.10.35013.160
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AGPU_API", "AGPU_API\AGPU_API.csproj", "{07355483-64F4-44A8-984D-B612F6FB099F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGPU_WEB", "AGPU_WEB\AGPU_WEB.csproj", "{B4A15710-B838-4A4A-9F6B-BD04D7BB360B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AGPU_WEB", "AGPU_WEB\AGPU_WEB.csproj", "{B4A15710-B838-4A4A-9F6B-BD04D7BB360B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AGPU_Utility", "AGPU_Utility\AGPU_Utility.csproj", "{682B694C-EBB7-443A-992D-2880A8921311}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AGPU_Utility", "AGPU_Utility\AGPU_Utility.csproj", "{682B694C-EBB7-443A-992D-2880A8921311}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6CE5008A-B667-4BA1-881F-1133009260DC}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
